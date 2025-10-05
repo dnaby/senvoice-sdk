@@ -14,14 +14,15 @@ SDK Python asynchrone pour les APIs serverless RunPod (Text-to-Speech et Speech-
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+pip install git+https://TOKEN@github.com/dnaby/senvoice-sdk.git
 ```
 
-### Dépendances
+### Requirements.txt
+
+Pour intégrer SenVoice dans vos projets, ajoutez cette ligne à votre `requirements.txt` :
 
 ```txt
-requests>=2.25.0
-aiohttp>=3.8.0
+senvoice-sdk @ git+https://TOKEN@github.com/dnaby/senvoice-sdk.git
 ```
 
 ## Architecture

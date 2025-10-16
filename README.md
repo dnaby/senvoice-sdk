@@ -7,7 +7,7 @@ SDK Python asynchrone pour les APIs serverless RunPod (Text-to-Speech et Speech-
 - **Asynchrone** : Performances optimisées avec `aiohttp` et `asyncio`
 - **4 modèles distincts** : TTS/STT pour Français et Wolof
 - **Requêtes concurrentes** : Jusqu'à 2x plus rapide que les appels séquentiels
-- **Sample rate automatique** : 16000 Hz par défaut pour le Wolof STT
+- **Endpoints flexibles** : Support RunPod (cloud) et endpoints locaux
 - **Gestion d'erreurs robuste** : Validation complète et exceptions spécialisées
 - **Context manager** : Cleanup automatique des sessions HTTP
 
@@ -43,12 +43,32 @@ import asyncio
 from senvoice import SenVoice
 
 async def main():
+    # Mode RunPod (cloud avec authentification)
     async with SenVoice(
         api_key="votre_api_key_runpod",
         tts_fr_endpoint_id="endpoint-tts-francais",
         tts_wo_endpoint_id="endpoint-tts-wolof",
         stt_fr_endpoint_id="endpoint-stt-francais",
         stt_wo_endpoint_id="endpoint-stt-wolof"
+    ) as sdk:
+        # Utilisation du SDK
+        pass
+
+    # Mode local (sans authentification)
+    async with SenVoice(
+        tts_fr_endpoint="http://localhost:8001",
+        tts_wo_endpoint="http://localhost:8002",
+        stt_fr_endpoint="http://localhost:8003",
+        stt_wo_endpoint="http://localhost:8004"
+    ) as sdk:
+        # Utilisation du SDK
+        pass
+
+    # Mode mixte (RunPod + Local)
+    async with SenVoice(
+        api_key="votre_api_key_runpod",
+        tts_fr_endpoint_id="runpod-tts-fr-id",  # RunPod
+        stt_fr_endpoint="http://localhost:8003"  # Local
     ) as sdk:
         # Utilisation du SDK
         pass
@@ -89,7 +109,7 @@ async with SenVoice(api_key="key", ...) as sdk:
 
     # Transcription séquentielle
     response_fr = await sdk.stt_fr.transcribe(audio_base64)
-    response_wo = await sdk.stt_wo.transcribe(audio_base64)  # sample_rate=16000 auto
+    response_wo = await sdk.stt_wo.transcribe(audio_base64)
 
     # Transcription concurrente (plus rapide)
     results = await asyncio.gather(
@@ -246,10 +266,16 @@ async def monitor_performance(sdk):
 
 ## Fonctionnalités clés
 
-### ✅ **STT Wolof avec sample_rate automatique**
+### ✅ **Endpoints flexibles**
 
-- `sample_rate=16000` ajouté automatiquement pour le wolof
-- Personnalisable si nécessaire : `await sdk.stt_wo.transcribe(audio, sample_rate=22050)`
+- **RunPod (cloud)** : Authentification Bearer token, URLs automatiques
+- **Local** : Aucune authentification, URLs directes
+- **Mode mixte** : Combinaison RunPod + Local selon vos besoins
+
+### ✅ **STT Wolof**
+
+- Paramètres optimisés automatiquement pour le wolof
+- Personnalisable si nécessaire via `**kwargs`
 - Validation automatique des paramètres
 
 ### ✅ **Architecture modulaire asynchrone**

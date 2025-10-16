@@ -16,27 +16,32 @@ class SenVoice:
     
     def __init__(
         self, 
-        api_key: str,
+        api_key: Optional[str] = None,
         tts_fr_endpoint_id: Optional[str] = None,
         tts_wo_endpoint_id: Optional[str] = None,
         stt_fr_endpoint_id: Optional[str] = None,
         stt_wo_endpoint_id: Optional[str] = None,
+        tts_fr_endpoint: Optional[str] = None,
+        tts_wo_endpoint: Optional[str] = None,
+        stt_fr_endpoint: Optional[str] = None,
+        stt_wo_endpoint: Optional[str] = None,
         timeout: int = 30
     ):
         """
         Initialize SenVoice SDK
         
         Args:
-            api_key: RunPod API key
+            api_key: RunPod API key (required for RunPod endpoints)
             tts_fr_endpoint_id: RunPod endpoint ID for TTS French service
             tts_wo_endpoint_id: RunPod endpoint ID for TTS Wolof service
             stt_fr_endpoint_id: RunPod endpoint ID for STT French service
             stt_wo_endpoint_id: RunPod endpoint ID for STT Wolof service
+            tts_fr_endpoint: Direct URL for TTS French service (local)
+            tts_wo_endpoint: Direct URL for TTS Wolof service (local)
+            stt_fr_endpoint: Direct URL for STT French service (local)
+            stt_wo_endpoint: Direct URL for STT Wolof service (local)
             timeout: Request timeout in seconds
         """
-        if not api_key:
-            raise ValidationError("API key is required")
-        
         self.api_key = api_key
         self.timeout = timeout
         
@@ -46,16 +51,28 @@ class SenVoice:
         self._stt_fr_client = None
         self._stt_wo_client = None
         
-        # Store endpoint IDs and build URLs
+        # Store endpoint IDs and direct URLs
         self._tts_fr_endpoint_id = tts_fr_endpoint_id
         self._tts_wo_endpoint_id = tts_wo_endpoint_id
         self._stt_fr_endpoint_id = stt_fr_endpoint_id
         self._stt_wo_endpoint_id = stt_wo_endpoint_id
         
-        self._tts_fr_base_url = f"https://{tts_fr_endpoint_id}.api.runpod.ai" if tts_fr_endpoint_id else None
-        self._tts_wo_base_url = f"https://{tts_wo_endpoint_id}.api.runpod.ai" if tts_wo_endpoint_id else None
-        self._stt_fr_base_url = f"https://{stt_fr_endpoint_id}.api.runpod.ai" if stt_fr_endpoint_id else None
-        self._stt_wo_base_url = f"https://{stt_wo_endpoint_id}.api.runpod.ai" if stt_wo_endpoint_id else None
+        self._tts_fr_endpoint = tts_fr_endpoint
+        self._tts_wo_endpoint = tts_wo_endpoint
+        self._stt_fr_endpoint = stt_fr_endpoint
+        self._stt_wo_endpoint = stt_wo_endpoint
+        
+        # Build URLs (priority: direct URL > endpoint_id)
+        self._tts_fr_base_url = tts_fr_endpoint or (f"https://{tts_fr_endpoint_id}.api.runpod.ai" if tts_fr_endpoint_id else None)
+        self._tts_wo_base_url = tts_wo_endpoint or (f"https://{tts_wo_endpoint_id}.api.runpod.ai" if tts_wo_endpoint_id else None)
+        self._stt_fr_base_url = stt_fr_endpoint or (f"https://{stt_fr_endpoint_id}.api.runpod.ai" if stt_fr_endpoint_id else None)
+        self._stt_wo_base_url = stt_wo_endpoint or (f"https://{stt_wo_endpoint_id}.api.runpod.ai" if stt_wo_endpoint_id else None)
+        
+        # Determine if authentication is needed (RunPod endpoints need auth, local don't)
+        self._tts_fr_needs_auth = bool(tts_fr_endpoint_id and not tts_fr_endpoint)
+        self._tts_wo_needs_auth = bool(tts_wo_endpoint_id and not tts_wo_endpoint)
+        self._stt_fr_needs_auth = bool(stt_fr_endpoint_id and not stt_fr_endpoint)
+        self._stt_wo_needs_auth = bool(stt_wo_endpoint_id and not stt_wo_endpoint)
     
     @property
     def tts_fr(self) -> TTSClient:
@@ -69,15 +86,26 @@ class SenVoice:
             ValidationError: If TTS French endpoint ID is not configured
         """
         if self._tts_fr_client is None:
-            if not self._tts_fr_endpoint_id:
+            if not self._tts_fr_base_url:
                 raise ValidationError(
-                    "TTS French endpoint ID is required. Please provide tts_fr_endpoint_id when initializing SenVoice"
+                    "TTS French endpoint is required. Please provide tts_fr_endpoint_id or tts_fr_endpoint when initializing SenVoice"
                 )
-            self._tts_fr_client = TTSClient(
-                api_key=self.api_key,
-                base_url=self._tts_fr_base_url,
-                timeout=self.timeout
-            )
+            
+            # Choose client type based on authentication needs
+            if self._tts_fr_needs_auth:
+                if not self.api_key:
+                    raise ValidationError("API key is required for RunPod endpoints")
+                self._tts_fr_client = TTSClient(
+                    api_key=self.api_key,
+                    base_url=self._tts_fr_base_url,
+                    timeout=self.timeout
+                )
+            else:
+                from .tts import TTSLocalClient
+                self._tts_fr_client = TTSLocalClient(
+                    base_url=self._tts_fr_base_url,
+                    timeout=self.timeout
+                )
         return self._tts_fr_client
     
     @property
@@ -92,15 +120,26 @@ class SenVoice:
             ValidationError: If TTS Wolof endpoint ID is not configured
         """
         if self._tts_wo_client is None:
-            if not self._tts_wo_endpoint_id:
+            if not self._tts_wo_base_url:
                 raise ValidationError(
-                    "TTS Wolof endpoint ID is required. Please provide tts_wo_endpoint_id when initializing SenVoice"
+                    "TTS Wolof endpoint is required. Please provide tts_wo_endpoint_id or tts_wo_endpoint when initializing SenVoice"
                 )
-            self._tts_wo_client = TTSClient(
-                api_key=self.api_key,
-                base_url=self._tts_wo_base_url,
-                timeout=self.timeout
-            )
+            
+            # Choose client type based on authentication needs
+            if self._tts_wo_needs_auth:
+                if not self.api_key:
+                    raise ValidationError("API key is required for RunPod endpoints")
+                self._tts_wo_client = TTSClient(
+                    api_key=self.api_key,
+                    base_url=self._tts_wo_base_url,
+                    timeout=self.timeout
+                )
+            else:
+                from .tts import TTSLocalClient
+                self._tts_wo_client = TTSLocalClient(
+                    base_url=self._tts_wo_base_url,
+                    timeout=self.timeout
+                )
         return self._tts_wo_client
     
     @property
@@ -115,15 +154,26 @@ class SenVoice:
             ValidationError: If STT French endpoint ID is not configured
         """
         if self._stt_fr_client is None:
-            if not self._stt_fr_endpoint_id:
+            if not self._stt_fr_base_url:
                 raise ValidationError(
-                    "STT French endpoint ID is required. Please provide stt_fr_endpoint_id when initializing SenVoice"
+                    "STT French endpoint is required. Please provide stt_fr_endpoint_id or stt_fr_endpoint when initializing SenVoice"
                 )
-            self._stt_fr_client = STTClient(
-                api_key=self.api_key,
-                base_url=self._stt_fr_base_url,
-                timeout=self.timeout
-            )
+            
+            # Choose client type based on authentication needs
+            if self._stt_fr_needs_auth:
+                if not self.api_key:
+                    raise ValidationError("API key is required for RunPod endpoints")
+                self._stt_fr_client = STTClient(
+                    api_key=self.api_key,
+                    base_url=self._stt_fr_base_url,
+                    timeout=self.timeout
+                )
+            else:
+                from .stt import STTLocalClient
+                self._stt_fr_client = STTLocalClient(
+                    base_url=self._stt_fr_base_url,
+                    timeout=self.timeout
+                )
         return self._stt_fr_client
     
     @property
@@ -132,21 +182,32 @@ class SenVoice:
         Get STT Wolof client instance
         
         Returns:
-            STTWolofClient instance for Wolof with default sample_rate=16000
+            STTWolofClient instance for Wolof
             
         Raises:
             ValidationError: If STT Wolof endpoint ID is not configured
         """
         if self._stt_wo_client is None:
-            if not self._stt_wo_endpoint_id:
+            if not self._stt_wo_base_url:
                 raise ValidationError(
-                    "STT Wolof endpoint ID is required. Please provide stt_wo_endpoint_id when initializing SenVoice"
+                    "STT Wolof endpoint is required. Please provide stt_wo_endpoint_id or stt_wo_endpoint when initializing SenVoice"
                 )
-            self._stt_wo_client = STTWolofClient(
-                api_key=self.api_key,
-                base_url=self._stt_wo_base_url,
-                timeout=self.timeout
-            )
+            
+            # Choose client type based on authentication needs
+            if self._stt_wo_needs_auth:
+                if not self.api_key:
+                    raise ValidationError("API key is required for RunPod endpoints")
+                self._stt_wo_client = STTWolofClient(
+                    api_key=self.api_key,
+                    base_url=self._stt_wo_base_url,
+                    timeout=self.timeout
+                )
+            else:
+                from .stt import STTWolofLocalClient
+                self._stt_wo_client = STTWolofLocalClient(
+                    base_url=self._stt_wo_base_url,
+                    timeout=self.timeout
+                )
         return self._stt_wo_client
     
     def configure_tts_fr(self, endpoint_id: str) -> None:
@@ -216,19 +277,19 @@ class SenVoice:
         service_names = []
         
         # Create ping tasks for all configured services
-        if self._tts_fr_endpoint_id:
+        if self._tts_fr_base_url:
             tasks.append(self.tts_fr.ping())
             service_names.append('tts_fr')
         
-        if self._tts_wo_endpoint_id:
+        if self._tts_wo_base_url:
             tasks.append(self.tts_wo.ping())
             service_names.append('tts_wo')
         
-        if self._stt_fr_endpoint_id:
+        if self._stt_fr_base_url:
             tasks.append(self.stt_fr.ping())
             service_names.append('stt_fr')
         
-        if self._stt_wo_endpoint_id:
+        if self._stt_wo_base_url:
             tasks.append(self.stt_wo.ping())
             service_names.append('stt_wo')
         

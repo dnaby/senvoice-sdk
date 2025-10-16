@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="senvoice-sdk",
-    version="0.2.0",
+    version="0.2.1",
     author="Mouhamadou Naby DIA",
     author_email="mouhamadounaby.dia@orange-sonatel.com",
     description="SenVoice SDK - Python SDK for RunPod Serverless APIs (TTS & STT)",

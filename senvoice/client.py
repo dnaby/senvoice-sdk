@@ -3,9 +3,9 @@ Main SenVoice SDK client with async support
 """
 
 import asyncio
-from typing import Optional, Dict, Any
-from .tts import TTSClient
-from .stt import STTClient, STTWolofClient
+from typing import Optional, Dict, Any, Union
+from .tts import TTSClient, TTSLocalClient
+from .stt import STTClient, STTWolofClient, STTLocalClient, STTWolofLocalClient
 from .exceptions import ValidationError
 
 
@@ -75,7 +75,7 @@ class SenVoice:
         self._stt_wo_needs_auth = bool(stt_wo_endpoint_id and not stt_wo_endpoint)
     
     @property
-    def tts_fr(self) -> TTSClient:
+    def tts_fr(self) -> Union[TTSClient, TTSLocalClient]:
         """
         Get TTS French client instance
         
@@ -109,7 +109,7 @@ class SenVoice:
         return self._tts_fr_client
     
     @property
-    def tts_wo(self) -> TTSClient:
+    def tts_wo(self) -> Union[TTSClient, TTSLocalClient]:
         """
         Get TTS Wolof client instance
         
@@ -143,7 +143,7 @@ class SenVoice:
         return self._tts_wo_client
     
     @property
-    def stt_fr(self) -> STTClient:
+    def stt_fr(self) -> Union[STTClient, STTLocalClient]:
         """
         Get STT French client instance
         
@@ -177,7 +177,7 @@ class SenVoice:
         return self._stt_fr_client
     
     @property
-    def stt_wo(self) -> STTWolofClient:
+    def stt_wo(self) -> Union[STTWolofClient, STTWolofLocalClient]:
         """
         Get STT Wolof client instance
         

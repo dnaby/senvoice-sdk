@@ -121,9 +121,51 @@ class STTLocalClient(LocalClient):
 
 class STTWolofClient(STTClient):
     """Specialized async STT client for Wolof language (with authentication)"""
-    pass
+    
+    async def transcribe(
+        self,
+        audio_base64: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Transcribe Wolof audio to text asynchronously
+        
+        Args:
+            audio_base64: Base64 encoded audio data
+            **kwargs: Additional parameters for transcription
+            
+        Returns:
+            Transcription response from the API
+            
+        Raises:
+            ValidationError: If input validation fails
+            APIError: If API request fails
+        """
+        # Use parent class implementation
+        return await super().transcribe(audio_base64, **kwargs)
 
 
 class STTWolofLocalClient(STTLocalClient):
     """Specialized async STT client for Wolof language (local, no authentication)"""
-    pass
+    
+    async def transcribe(
+        self,
+        audio_base64: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Transcribe Wolof audio to text asynchronously
+        
+        Args:
+            audio_base64: Base64 encoded audio data
+            **kwargs: Additional parameters for transcription
+            
+        Returns:
+            Transcription response from the API
+            
+        Raises:
+            ValidationError: If input validation fails
+            APIError: If API request fails
+        """
+        # Use parent class implementation
+        return await super().transcribe(audio_base64, **kwargs)

@@ -8,15 +8,17 @@ from .exceptions import ValidationError
 
 
 class TTSClient(BaseClient):
-    """Async client for Text-to-Speech API operations (with authentication)"""
+    """Async client for unified Text-to-Speech API operations (with authentication)
+    Supports both French and Wolof languages automatically
+    """
     
     def __init__(self, api_key: str, base_url: str, timeout: int = 30):
         """
-        Initialize TTS client
+        Initialize unified TTS client
         
         Args:
             api_key: RunPod API key
-            base_url: Base URL for the TTS API endpoint
+            base_url: Base URL for the unified TTS API endpoint
             timeout: Request timeout in seconds
         """
         super().__init__(api_key, base_url, timeout)
@@ -27,10 +29,10 @@ class TTSClient(BaseClient):
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Synthesize text to speech asynchronously
+        Synthesize text to speech asynchronously (supports French and Wolof)
         
         Args:
-            text: Text to synthesize
+            text: Text to synthesize (French or Wolof)
             **kwargs: Additional parameters for synthesis
             
         Returns:
@@ -58,14 +60,16 @@ class TTSClient(BaseClient):
 
 
 class TTSLocalClient(LocalClient):
-    """Async client for Text-to-Speech API operations (local, no authentication)"""
+    """Async client for unified Text-to-Speech API operations (local, no authentication)
+    Supports both French and Wolof languages automatically
+    """
     
     def __init__(self, base_url: str, timeout: int = 30):
         """
-        Initialize local TTS client
+        Initialize unified local TTS client
         
         Args:
-            base_url: Base URL for the TTS API endpoint
+            base_url: Base URL for the unified TTS API endpoint
             timeout: Request timeout in seconds
         """
         super().__init__(base_url, timeout)
@@ -76,10 +80,10 @@ class TTSLocalClient(LocalClient):
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Synthesize text to speech asynchronously
+        Synthesize text to speech asynchronously (supports French and Wolof)
         
         Args:
-            text: Text to synthesize
+            text: Text to synthesize (French or Wolof)
             **kwargs: Additional parameters for synthesis
             
         Returns:

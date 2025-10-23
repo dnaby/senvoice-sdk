@@ -1,5 +1,5 @@
 """
-Example usage of SenVoice SDK with async support
+Example usage of SenVoice SDK with unified endpoints and async support
 """
 
 import asyncio
@@ -8,18 +8,16 @@ from senvoice import SenVoice, AuthenticationError, APIError, ValidationError
 
 
 async def main():
-    """Example usage of the SenVoice SDK with async/await"""
+    """Example usage of the SenVoice SDK with unified endpoints and async/await"""
     
-    # Initialize SDK with environment variables
+    # Initialize SDK with unified endpoints
     try:
         async with SenVoice(
             api_key=os.getenv("RUNPOD_API_KEY", "your_api_key_here"),
-            tts_fr_endpoint_id=os.getenv("TTS_FR_ENDPOINT", "your-tts-fr-endpoint-id"),
-            tts_wo_endpoint_id=os.getenv("TTS_WO_ENDPOINT", "your-tts-wo-endpoint-id"),
-            stt_fr_endpoint_id=os.getenv("STT_FR_ENDPOINT", "your-stt-fr-endpoint-id"),
-            stt_wo_endpoint_id=os.getenv("STT_WO_ENDPOINT", "your-stt-wo-endpoint-id")
+            tts_endpoint_id=os.getenv("TTS_ENDPOINT", "your-unified-tts-endpoint-id"),
+            asr_endpoint_id=os.getenv("ASR_ENDPOINT", "your-unified-asr-endpoint-id")
         ) as sdk:
-            print("✅ SenVoice SDK initialized successfully")
+            print("✅ SenVoice SDK initialized successfully (unified mode)")
             
             # Test connectivity (concurrent pings)
             print("\n🔍 Testing connectivity...")
@@ -33,13 +31,13 @@ async def main():
             except Exception as e:
                 print(f"❌ Connectivity test failed: {e}")
             
-            # TTS Tests (concurrent)
-            print("\n🗣️  Testing Text-to-Speech (concurrent)...")
+            # TTS Tests (concurrent with unified model)
+            print("\n🗣️  Testing Text-to-Speech (unified model, concurrent)...")
             
             try:
-                # Run both TTS requests concurrently
-                tts_fr_task = sdk.tts_fr.synthesize("Bonjour, comment allez-vous ?")
-                tts_wo_task = sdk.tts_wo.synthesize("Salam naka nga deif")
+                # Run both TTS requests concurrently using unified model
+                tts_fr_task = sdk.tts.synthesize("Bonjour, comment allez-vous ?")
+                tts_wo_task = sdk.tts.synthesize("Salam naka nga deif")
                 
                 tts_fr_response, tts_wo_response = await asyncio.gather(
                     tts_fr_task, tts_wo_task, return_exceptions=True
@@ -74,79 +72,79 @@ async def main():
                 tts_fr_audio = None
                 tts_wo_audio = None
             
-            # STT Testing with TTS generated audio (concurrent)
-            print("\n🎤 Testing Speech-to-Text with TTS generated audio (concurrent)...")
+            # ASR Testing with TTS generated audio (concurrent with unified model)
+            print("\n🎤 Testing Speech-to-Text with TTS generated audio (unified model, concurrent)...")
             
-            stt_tasks = []
-            stt_descriptions = []
+            asr_tasks = []
+            asr_descriptions = []
             
-            # Prepare STT tasks
+            # Prepare ASR tasks using unified model
             if tts_fr_audio:
-                stt_tasks.append(sdk.stt_fr.transcribe(audio_base64=tts_fr_audio))
-                stt_descriptions.append("STT French")
+                asr_tasks.append(sdk.asr.transcribe(audio_base64=tts_fr_audio))
+                asr_descriptions.append("ASR French")
             
             if tts_wo_audio:
-                stt_tasks.append(sdk.stt_wo.transcribe(audio_base64=tts_wo_audio))
-                stt_descriptions.append("STT Wolof")
+                asr_tasks.append(sdk.asr.transcribe(audio_base64=tts_wo_audio))
+                asr_descriptions.append("ASR Wolof")
             
-            # Execute STT tasks concurrently
-            if stt_tasks:
-                stt_results = await asyncio.gather(*stt_tasks, return_exceptions=True)
+            # Execute ASR tasks concurrently
+            if asr_tasks:
+                asr_results = await asyncio.gather(*asr_tasks, return_exceptions=True)
                 
-                for description, result in zip(stt_descriptions, stt_results):
+                for description, result in zip(asr_descriptions, asr_results):
                     if isinstance(result, Exception):
                         print(f"❌ {description} error: {result}")
                     else:
                         transcribed_text = result.get('transcription', result)
                         print(f"✅ {description} Response: {transcribed_text}")
             else:
-                print("⏭️  No audio available for STT testing")
+                print("⏭️  No audio available for ASR testing")
             
-            # Cross-language testing (concurrent)
-            print("\n🔄 Testing cross-language transcription (concurrent)...")
+            # Language detection testing (unified model automatically detects language)
+            print("\n🔄 Testing automatic language detection (unified ASR model)...")
             
-            cross_tasks = []
-            cross_descriptions = []
+            detection_tasks = []
+            detection_descriptions = []
             
-            # Prepare cross-language tasks
+            # Test unified model's language detection capability
             if tts_fr_audio:
-                cross_tasks.append(sdk.stt_wo.transcribe(audio_base64=tts_fr_audio))
-                cross_descriptions.append("🇫🇷→🇸🇳 French TTS → Wolof STT")
+                detection_tasks.append(sdk.asr.transcribe(audio_base64=tts_fr_audio))
+                detection_descriptions.append("🇫🇷 French TTS → Unified ASR (auto-detect)")
             
             if tts_wo_audio:
-                cross_tasks.append(sdk.stt_fr.transcribe(audio_base64=tts_wo_audio))
-                cross_descriptions.append("🇸🇳→🇫🇷 Wolof TTS → French STT")
+                detection_tasks.append(sdk.asr.transcribe(audio_base64=tts_wo_audio))
+                detection_descriptions.append("🇸🇳 Wolof TTS → Unified ASR (auto-detect)")
             
-            # Execute cross-language tasks concurrently
-            if cross_tasks:
-                cross_results = await asyncio.gather(*cross_tasks, return_exceptions=True)
+            # Execute language detection tasks concurrently
+            if detection_tasks:
+                detection_results = await asyncio.gather(*detection_tasks, return_exceptions=True)
                 
-                for description, result in zip(cross_descriptions, cross_results):
+                for description, result in zip(detection_descriptions, detection_results):
                     if isinstance(result, Exception):
                         print(f"❌ {description} error: {result}")
                     else:
                         transcribed_text = result.get('transcription', result)
                         print(f"✅ {description}: {transcribed_text}")
             else:
-                print("⏭️  No audio available for cross-language testing")
+                print("⏭️  No audio available for language detection testing")
             
-            # Performance test - concurrent vs sequential
-            print("\n⚡ Performance comparison...")
+            # Performance test - concurrent vs sequential (unified model)
+            print("\n⚡ Performance comparison (unified ASR model)...")
             
             if tts_fr_audio and tts_wo_audio:
                 import time
                 
                 # Sequential test
                 start_time = time.time()
-                await sdk.stt_fr.transcribe(audio_base64=tts_fr_audio)
-                await sdk.stt_wo.transcribe(audio_base64=tts_wo_audio)
+                await sdk.asr.transcribe(audio_base64=tts_fr_audio)
+                await sdk.asr.transcribe(audio_base64=tts_wo_audio)
                 sequential_time = time.time() - start_time
                 
                 # Concurrent test
                 start_time = time.time()
                 await asyncio.gather(
-                    sdk.stt_fr.transcribe(audio_base64=tts_fr_audio),
-                    sdk.stt_wo.transcribe(audio_base64=tts_wo_audio)
+                    sdk.asr.transcribe(audio_base64=tts_fr_audio),
+                    sdk.asr.transcribe(audio_base64=tts_wo_audio)
                 )
                 concurrent_time = time.time() - start_time
                 
@@ -159,10 +157,11 @@ async def main():
             
             # Summary
             print("\n📊 Test Summary:")
-            print(f"TTS French: {'✅' if tts_fr_audio else '❌'}")
-            print(f"TTS Wolof: {'✅' if tts_wo_audio else '❌'}")
+            print(f"Unified TTS French: {'✅' if tts_fr_audio else '❌'}")
+            print(f"Unified TTS Wolof: {'✅' if tts_wo_audio else '❌'}")
             print(f"Audio extraction: {'✅' if (tts_fr_audio or tts_wo_audio) else '❌'}")
-            print("🎉 SenVoice SDK async test completed!")
+            print(f"Unified ASR: {'✅' if (tts_fr_audio or tts_wo_audio) else '❌'}")
+            print("🎉 SenVoice SDK unified models test completed!")
             
     except ValidationError as e:
         print(f"❌ Configuration error: {e}")

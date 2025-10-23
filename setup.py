@@ -8,20 +8,20 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="senvoice-sdk",
-    version="0.2.1",
+    version="0.3.0",
     author="Mouhamadou Naby DIA",
     author_email="mouhamadounaby.dia@orange-sonatel.com",
-    description="SenVoice SDK - Python SDK for RunPod Serverless APIs (TTS & STT)",
+    description="SenVoice SDK - Python SDK for Wolof & French Voice Models (TTS & STT)",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/senvoice-sdk",
+    url="https://github.com/dnaby05/senvoice-sdk",
     packages=find_packages(),
     classifiers=[],
     python_requires=">=3.7",
     install_requires=requirements,
-    keywords="senvoice runpod serverless tts stt speech-to-text text-to-speech api sdk wolof french",
+    keywords="senvoice speech-to-text & text-to-speech sdk wolof french",
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/senvoice-sdk/issues",
-        "Source": "https://github.com/yourusername/senvoice-sdk",
+        "Bug Reports": "https://github.com/dnaby05/senvoice-sdk/issues",
+        "Source": "https://github.com/dnaby05/senvoice-sdk",
     },
 )

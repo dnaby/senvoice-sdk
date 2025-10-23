@@ -9,15 +9,17 @@ from .exceptions import ValidationError
 
 
 class STTClient(BaseClient):
-    """Async client for Speech-to-Text API operations (with authentication)"""
+    """Async client for unified Speech-to-Text API operations (with authentication)
+    Supports both French and Wolof languages automatically
+    """
     
     def __init__(self, api_key: str, base_url: str, timeout: int = 60):
         """
-        Initialize STT client
+        Initialize unified STT client
         
         Args:
             api_key: RunPod API key
-            base_url: Base URL for the STT API endpoint
+            base_url: Base URL for the unified STT API endpoint
             timeout: Request timeout in seconds (default 60 for audio processing)
         """
         super().__init__(api_key, base_url, timeout)
@@ -28,7 +30,7 @@ class STTClient(BaseClient):
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Transcribe audio to text asynchronously
+        Transcribe audio to text asynchronously (supports French and Wolof)
         
         Args:
             audio_base64: Base64 encoded audio data
@@ -65,14 +67,16 @@ class STTClient(BaseClient):
 
 
 class STTLocalClient(LocalClient):
-    """Async client for Speech-to-Text API operations (local, no authentication)"""
+    """Async client for unified Speech-to-Text API operations (local, no authentication)
+    Supports both French and Wolof languages automatically
+    """
     
     def __init__(self, base_url: str, timeout: int = 60):
         """
-        Initialize local STT client
+        Initialize unified local STT client
         
         Args:
-            base_url: Base URL for the STT API endpoint
+            base_url: Base URL for the unified STT API endpoint
             timeout: Request timeout in seconds (default 60 for audio processing)
         """
         super().__init__(base_url, timeout)
@@ -83,7 +87,7 @@ class STTLocalClient(LocalClient):
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Transcribe audio to text asynchronously
+        Transcribe audio to text asynchronously (supports French and Wolof)
         
         Args:
             audio_base64: Base64 encoded audio data
@@ -117,55 +121,3 @@ class STTLocalClient(LocalClient):
         data.update(kwargs)
         
         return await self._make_request('POST', '/transcribe', data=data)
-
-
-class STTWolofClient(STTClient):
-    """Specialized async STT client for Wolof language (with authentication)"""
-    
-    async def transcribe(
-        self,
-        audio_base64: str,
-        **kwargs
-    ) -> Dict[str, Any]:
-        """
-        Transcribe Wolof audio to text asynchronously
-        
-        Args:
-            audio_base64: Base64 encoded audio data
-            **kwargs: Additional parameters for transcription
-            
-        Returns:
-            Transcription response from the API
-            
-        Raises:
-            ValidationError: If input validation fails
-            APIError: If API request fails
-        """
-        # Use parent class implementation
-        return await super().transcribe(audio_base64, **kwargs)
-
-
-class STTWolofLocalClient(STTLocalClient):
-    """Specialized async STT client for Wolof language (local, no authentication)"""
-    
-    async def transcribe(
-        self,
-        audio_base64: str,
-        **kwargs
-    ) -> Dict[str, Any]:
-        """
-        Transcribe Wolof audio to text asynchronously
-        
-        Args:
-            audio_base64: Base64 encoded audio data
-            **kwargs: Additional parameters for transcription
-            
-        Returns:
-            Transcription response from the API
-            
-        Raises:
-            ValidationError: If input validation fails
-            APIError: If API request fails
-        """
-        # Use parent class implementation
-        return await super().transcribe(audio_base64, **kwargs)

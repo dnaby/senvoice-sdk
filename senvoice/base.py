@@ -5,7 +5,7 @@ Base client for SenVoice SDK with async support
 import aiohttp
 import asyncio
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, AsyncGenerator
 from .exceptions import AuthenticationError, APIError, ConnectionError
 
 

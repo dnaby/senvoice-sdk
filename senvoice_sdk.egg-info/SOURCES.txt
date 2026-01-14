@@ -1,0 +1,14 @@
+README.md
+setup.py
+senvoice/__init__.py
+senvoice/base.py
+senvoice/client.py
+senvoice/exceptions.py
+senvoice/streaming.py
+senvoice/stt.py
+senvoice/tts.py
+senvoice_sdk.egg-info/PKG-INFO
+senvoice_sdk.egg-info/SOURCES.txt
+senvoice_sdk.egg-info/dependency_links.txt
+senvoice_sdk.egg-info/requires.txt
+senvoice_sdk.egg-info/top_level.txt

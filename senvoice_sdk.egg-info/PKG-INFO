@@ -1,3 +1,18 @@
+Metadata-Version: 2.1
+Name: senvoice-sdk
+Version: 0.3.1
+Summary: SenVoice SDK - Python SDK for Wolof & French Voice Models (TTS & STT)
+Home-page: https://github.com/dnaby05/senvoice-sdk
+Author: Mouhamadou Naby DIA
+Author-email: mouhamadounaby.dia@orange-sonatel.com
+License: UNKNOWN
+Project-URL: Bug Reports, https://github.com/dnaby05/senvoice-sdk/issues
+Project-URL: Source, https://github.com/dnaby05/senvoice-sdk
+Keywords: senvoice speech-to-text & text-to-speech sdk wolof french
+Platform: UNKNOWN
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+
 # SenVoice SDK
 
 SDK Python asynchrone pour les APIs serverless RunPod (Text-to-Speech et Speech-to-Text) avec modèles unifiés supportant le français et le wolof.
@@ -100,7 +115,7 @@ async with SenVoice(api_key="key", ...) as sdk:
     # Streaming audio en temps réel
     audio_stream = sdk.tts.synthesize_stream(
         text="Bonjour, ceci est un test de streaming audio",
-        voice="mamito"  # Voix disponibles: mamito, kam, mingue
+        voice="mamito"  # Voix disponibles: mamito, tara, fatou
     )
     
     # Sauvegarder le stream audio
@@ -126,7 +141,7 @@ async with SenVoice(api_key="key", ...) as sdk:
     # Streaming concurrent avec différentes voix
     streams = [
         save_stream(sdk.tts.synthesize_stream("Texte français", voice="mamito"), "fr_mamito.wav"),
-            save_stream(sdk.tts.synthesize_stream("Texte wolof", voice="kam"), "wo_kam.wav")
+        save_stream(sdk.tts.synthesize_stream("Texte wolof", voice="tara"), "wo_tara.wav")
     ]
     
     await asyncio.gather(*streams)
@@ -210,14 +225,6 @@ async with SenVoice(api_key="key") as sdk:
 
 Le SDK supporte maintenant le streaming audio en temps réel avec le nouveau modèle Orpheus TTS.
 
-#### ⚠️ Format Audio Important
-
-Le flux audio généré est du **PCM Brut (Raw Audio)** optimisé pour le décodeur SNAC.
-Pour le lire ou le convertir, utilisez les paramètres suivants :
-- **Fréquence** : 24 000 Hz (24 kHz)
-- **Format** : 16-bit PCM (Signed Integer)
-- **Canaux** : Mono (1 canal)
-
 #### Avantages du streaming
 
 - **Latence réduite** : L'audio commence à jouer avant la fin de la génération
@@ -228,8 +235,8 @@ Pour le lire ou le convertir, utilisez les paramètres suivants :
 #### Voix disponibles
 
 - `mamito` : Voix féminine naturelle
-- `kam` : Voix masculine expressive
-- `mingue` : Voix féminine douce
+- `tara` : Voix féminine expressive  
+- `fatou` : Voix féminine douce
 
 #### Exemple complet de streaming
 
@@ -256,18 +263,14 @@ async def stream_to_file():
             voice="mamito"
         )
         
-        with open("streaming_output.raw", "wb") as f:
+        with open("streaming_output.wav", "wb") as f:
             async for chunk in audio_stream:
                 f.write(chunk)
+                chunk_count += 1
+                total_bytes += len(chunk)
+                print(f"Chunk {chunk_count}: {len(chunk)} bytes")
         
-        # Pour écouter (avec sox par exemple) :
-        # play -t raw -r 24000 -e signed -b 16 -c 1 streaming_output.raw
-        
-        # Ou convertir en WAV :
-        import wave
-        with open("streaming_output.raw", "rb") as raw, wave.open("output.wav", "wb") as wav:
-            wav.setparams((1, 2, 24000, 0, "NONE", "NONE"))
-            wav.writeframes(raw.read())
+        print(f"Streaming terminé: {chunk_count} chunks, {total_bytes} bytes")
 
 # Exécution
 asyncio.run(stream_to_file())
@@ -289,8 +292,8 @@ async def concurrent_streaming():
         # Lancer plusieurs streams en parallèle
         tasks = [
             save_stream("Texte français", "mamito", "fr_mamito.wav"),
-            save_stream("Texte wolof", "kam", "wo_kam.wav"),
-            save_stream("Long texte", "mingue", "long_mingue.wav")
+            save_stream("Texte wolof", "tara", "wo_tara.wav"),
+            save_stream("Long texte", "fatou", "long_fatou.wav")
         ]
         
         files = await asyncio.gather(*tasks)
@@ -441,3 +444,5 @@ async with SenVoice(api_key="key", ...) as sdk:
 ---
 
 **SenVoice SDK** - Développé pour les applications vocales sénégalaises avec support natif du français et du wolof. 🇸🇳
+
+

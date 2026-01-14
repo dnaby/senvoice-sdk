@@ -2,12 +2,14 @@
 Text-to-Speech (TTS) client for SenVoice SDK with async support
 """
 
-from typing import Dict, Any, Optional
+import asyncio
+from typing import Dict, Any, Optional, AsyncGenerator
 from .base import BaseClient, LocalClient
+from .streaming import StreamingMixin
 from .exceptions import ValidationError
 
 
-class TTSClient(BaseClient):
+class TTSClient(BaseClient, StreamingMixin):
     """Async client for unified Text-to-Speech API operations (with authentication)
     Supports both French and Wolof languages automatically
     """
@@ -57,9 +59,49 @@ class TTSClient(BaseClient):
         data.update(kwargs)
         
         return await self._make_request('POST', '/synthesize', data=data)
+    
+    async def synthesize_stream(
+        self, 
+        text: str,
+        voice: str = "mamito",
+        **kwargs
+    ) -> AsyncGenerator[bytes, None]:
+        """
+        Synthesize text to speech asynchronously with streaming audio output
+        
+        Args:
+            text: Text to synthesize (French or Wolof)
+            voice: Voice to use for synthesis (default: "mamito")
+            **kwargs: Additional parameters for synthesis
+            
+        Yields:
+            Audio chunks as bytes
+            
+        Raises:
+            ValidationError: If input validation fails
+            APIError: If API request fails
+        """
+        if not text or not isinstance(text, str):
+            raise ValidationError("Text must be a non-empty string")
+        
+        if len(text.strip()) == 0:
+            raise ValidationError("Text cannot be empty or whitespace only")
+        
+        # Prepare request parameters for streaming endpoint
+        params = {
+            "prompt": text,  # Le nouveau modèle utilise 'prompt' au lieu de 'text'
+            "voice": voice
+        }
+        
+        # Add any additional parameters
+        params.update(kwargs)
+        
+        # Stream the audio response
+        async for chunk in self._stream_request('GET', '/tts', params=params):
+            yield chunk
 
 
-class TTSLocalClient(LocalClient):
+class TTSLocalClient(LocalClient, StreamingMixin):
     """Async client for unified Text-to-Speech API operations (local, no authentication)
     Supports both French and Wolof languages automatically
     """
@@ -108,3 +150,43 @@ class TTSLocalClient(LocalClient):
         data.update(kwargs)
         
         return await self._make_request('POST', '/synthesize', data=data)
+    
+    async def synthesize_stream(
+        self, 
+        text: str,
+        voice: str = "mamito",
+        **kwargs
+    ) -> AsyncGenerator[bytes, None]:
+        """
+        Synthesize text to speech asynchronously with streaming audio output (local)
+        
+        Args:
+            text: Text to synthesize (French or Wolof)
+            voice: Voice to use for synthesis (default: "mamito")
+            **kwargs: Additional parameters for synthesis
+            
+        Yields:
+            Audio chunks as bytes
+            
+        Raises:
+            ValidationError: If input validation fails
+            APIError: If API request fails
+        """
+        if not text or not isinstance(text, str):
+            raise ValidationError("Text must be a non-empty string")
+        
+        if len(text.strip()) == 0:
+            raise ValidationError("Text cannot be empty or whitespace only")
+        
+        # Prepare request parameters for streaming endpoint
+        params = {
+            "prompt": text,  # Le nouveau modèle utilise 'prompt' au lieu de 'text'
+            "voice": voice
+        }
+        
+        # Add any additional parameters
+        params.update(kwargs)
+        
+        # Stream the audio response
+        async for chunk in self._stream_request('GET', '/tts', params=params):
+            yield chunk

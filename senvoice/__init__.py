@@ -7,7 +7,7 @@ from .tts import TTSClient, TTSLocalClient
 from .stt import STTClient, STTLocalClient
 from .exceptions import RunPodError, AuthenticationError, APIError, ValidationError
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 __author__ = "Mouhamadou Naby DIA"
 __email__ = "mouhamadounaby.dia@orange-sonatel.com"
 

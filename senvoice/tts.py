@@ -3,6 +3,7 @@ Text-to-Speech (TTS) client for SenVoice SDK with async support
 """
 
 import asyncio
+import base64
 from typing import Dict, Any, Optional, AsyncGenerator
 from .base import BaseClient, LocalClient
 from .streaming import StreamingMixin
@@ -28,6 +29,8 @@ class TTSClient(BaseClient, StreamingMixin):
     async def synthesize(
         self, 
         text: str,
+        voice: str = "mamito",
+        format: str = "opus",
         **kwargs
     ) -> Dict[str, Any]:
         """
@@ -35,10 +38,12 @@ class TTSClient(BaseClient, StreamingMixin):
         
         Args:
             text: Text to synthesize (French or Wolof)
+            voice: Voice to use for synthesis (default: "mamito")
+            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Returns:
-            Synthesis response from the API
+            Synthesis response from the API (contains 'audio' as base64 string for backward compatibility)
             
         Raises:
             ValidationError: If input validation fails
@@ -50,20 +55,28 @@ class TTSClient(BaseClient, StreamingMixin):
         if len(text.strip()) == 0:
             raise ValidationError("Text cannot be empty or whitespace only")
         
-        # Prepare request data
-        data = {
-            "text": text
+        # Collect all chunks from the stream
+        audio_chunks = []
+        async for chunk in self.synthesize_stream(text, voice, format, **kwargs):
+            audio_chunks.append(chunk)
+            
+        # Combine chunks into a single byte string
+        audio_data = b"".join(audio_chunks)
+        
+        # Encode to base64 for backward compatibility with existing SDK return format
+        audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+        
+        return {
+            "text": text,
+            "audio": audio_b64,
+            "format": format
         }
-        
-        # Add any additional parameters
-        data.update(kwargs)
-        
-        return await self._make_request('POST', '/synthesize', data=data)
     
     async def synthesize_stream(
         self, 
         text: str,
         voice: str = "mamito",
+        format: str = "opus",
         **kwargs
     ) -> AsyncGenerator[bytes, None]:
         """
@@ -72,6 +85,7 @@ class TTSClient(BaseClient, StreamingMixin):
         Args:
             text: Text to synthesize (French or Wolof)
             voice: Voice to use for synthesis (default: "mamito")
+            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Yields:
@@ -90,7 +104,8 @@ class TTSClient(BaseClient, StreamingMixin):
         # Prepare request parameters for streaming endpoint
         params = {
             "prompt": text,  # Le nouveau modèle utilise 'prompt' au lieu de 'text'
-            "voice": voice
+            "voice": voice,
+            "format": format
         }
         
         # Add any additional parameters
@@ -119,6 +134,8 @@ class TTSLocalClient(LocalClient, StreamingMixin):
     async def synthesize(
         self, 
         text: str,
+        voice: str = "mamito",
+        format: str = "opus",
         **kwargs
     ) -> Dict[str, Any]:
         """
@@ -126,10 +143,12 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         
         Args:
             text: Text to synthesize (French or Wolof)
+            voice: Voice to use for synthesis (default: "mamito")
+            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Returns:
-            Synthesis response from the API
+            Synthesis response from the API (contains 'audio' as base64 string for backward compatibility)
             
         Raises:
             ValidationError: If input validation fails
@@ -141,20 +160,28 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         if len(text.strip()) == 0:
             raise ValidationError("Text cannot be empty or whitespace only")
         
-        # Prepare request data
-        data = {
-            "text": text
+        # Collect all chunks from the stream
+        audio_chunks = []
+        async for chunk in self.synthesize_stream(text, voice, format, **kwargs):
+            audio_chunks.append(chunk)
+            
+        # Combine chunks into a single byte string
+        audio_data = b"".join(audio_chunks)
+        
+        # Encode to base64 for backward compatibility with existing SDK return format
+        audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+        
+        return {
+            "text": text,
+            "audio": audio_b64,
+            "format": format
         }
-        
-        # Add any additional parameters
-        data.update(kwargs)
-        
-        return await self._make_request('POST', '/synthesize', data=data)
     
     async def synthesize_stream(
         self, 
         text: str,
         voice: str = "mamito",
+        format: str = "opus",
         **kwargs
     ) -> AsyncGenerator[bytes, None]:
         """
@@ -163,6 +190,7 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         Args:
             text: Text to synthesize (French or Wolof)
             voice: Voice to use for synthesis (default: "mamito")
+            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Yields:
@@ -181,7 +209,8 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         # Prepare request parameters for streaming endpoint
         params = {
             "prompt": text,  # Le nouveau modèle utilise 'prompt' au lieu de 'text'
-            "voice": voice
+            "voice": voice,
+            "format": format
         }
         
         # Add any additional parameters

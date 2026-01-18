@@ -30,7 +30,6 @@ class TTSClient(BaseClient, StreamingMixin):
         self, 
         text: str,
         voice: str = "mamito",
-        format: str = "opus",
         **kwargs
     ) -> Dict[str, Any]:
         """
@@ -39,7 +38,6 @@ class TTSClient(BaseClient, StreamingMixin):
         Args:
             text: Text to synthesize (French or Wolof)
             voice: Voice to use for synthesis (default: "mamito")
-            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Returns:
@@ -57,7 +55,7 @@ class TTSClient(BaseClient, StreamingMixin):
         
         # Collect all chunks from the stream
         audio_chunks = []
-        async for chunk in self.synthesize_stream(text, voice, format, **kwargs):
+        async for chunk in self.synthesize_stream(text, voice, **kwargs):
             audio_chunks.append(chunk)
             
         # Combine chunks into a single byte string
@@ -69,14 +67,13 @@ class TTSClient(BaseClient, StreamingMixin):
         return {
             "text": text,
             "audio": audio_b64,
-            "format": format
+            "format": "pcm"
         }
     
     async def synthesize_stream(
         self, 
         text: str,
         voice: str = "mamito",
-        format: str = "opus",
         **kwargs
     ) -> AsyncGenerator[bytes, None]:
         """
@@ -85,11 +82,10 @@ class TTSClient(BaseClient, StreamingMixin):
         Args:
             text: Text to synthesize (French or Wolof)
             voice: Voice to use for synthesis (default: "mamito")
-            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Yields:
-            Audio chunks as bytes
+            Audio chunks as bytes (PCM Raw)
             
         Raises:
             ValidationError: If input validation fails
@@ -102,10 +98,10 @@ class TTSClient(BaseClient, StreamingMixin):
             raise ValidationError("Text cannot be empty or whitespace only")
         
         # Prepare request parameters for streaming endpoint
+        # NOTE: format parameter removed as API now only returns RAW PCM
         params = {
-            "prompt": text,  # Le nouveau modèle utilise 'prompt' au lieu de 'text'
-            "voice": voice,
-            "format": format
+            "prompt": text,
+            "voice": voice
         }
         
         # Add any additional parameters
@@ -135,7 +131,6 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         self, 
         text: str,
         voice: str = "mamito",
-        format: str = "opus",
         **kwargs
     ) -> Dict[str, Any]:
         """
@@ -144,7 +139,6 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         Args:
             text: Text to synthesize (French or Wolof)
             voice: Voice to use for synthesis (default: "mamito")
-            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Returns:
@@ -162,7 +156,7 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         
         # Collect all chunks from the stream
         audio_chunks = []
-        async for chunk in self.synthesize_stream(text, voice, format, **kwargs):
+        async for chunk in self.synthesize_stream(text, voice, **kwargs):
             audio_chunks.append(chunk)
             
         # Combine chunks into a single byte string
@@ -174,14 +168,13 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         return {
             "text": text,
             "audio": audio_b64,
-            "format": format
+            "format": "pcm"
         }
     
     async def synthesize_stream(
         self, 
         text: str,
         voice: str = "mamito",
-        format: str = "opus",
         **kwargs
     ) -> AsyncGenerator[bytes, None]:
         """
@@ -190,11 +183,10 @@ class TTSLocalClient(LocalClient, StreamingMixin):
         Args:
             text: Text to synthesize (French or Wolof)
             voice: Voice to use for synthesis (default: "mamito")
-            format: Audio format "opus" or "pcm" (default: "opus")
             **kwargs: Additional parameters for synthesis
             
         Yields:
-            Audio chunks as bytes
+            Audio chunks as bytes (PCM Raw)
             
         Raises:
             ValidationError: If input validation fails
@@ -207,10 +199,10 @@ class TTSLocalClient(LocalClient, StreamingMixin):
             raise ValidationError("Text cannot be empty or whitespace only")
         
         # Prepare request parameters for streaming endpoint
+        # NOTE: format parameter removed as API now only returns RAW PCM
         params = {
-            "prompt": text,  # Le nouveau modèle utilise 'prompt' au lieu de 'text'
-            "voice": voice,
-            "format": format
+            "prompt": text,
+            "voice": voice
         }
         
         # Add any additional parameters

@@ -7,8 +7,8 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
 setup(
-    name="senvoice-sdk",
-    version="0.4.1",
+    name="senvoice",
+    version="0.4.2",
     author="Mouhamadou Naby DIA",
     author_email="mouhamadounaby.dia@orange-sonatel.com",
     description="SenVoice SDK - Python SDK for Wolof & French Voice Models (TTS & STT)",
